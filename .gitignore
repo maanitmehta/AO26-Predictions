@@ -1,0 +1,11 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Raw data
+data/raw/
+
+# OS
+Thumbs.db
+.DS_Store
