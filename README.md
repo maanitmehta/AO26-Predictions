@@ -14,7 +14,7 @@ Past ATP and WTA data through: http://www.tennis-data.co.uk/alldata.php
 
 
 
-\- Builds \*\*separate ML models for ATP and WTA\*\*
+\- Builds separate ML models for ATP and WTA
 
 \- Learns from:
 
