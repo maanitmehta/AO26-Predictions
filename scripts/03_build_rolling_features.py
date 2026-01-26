@@ -1,42 +1,55 @@
 import pandas as pd
 from pathlib import Path
 
-INPUT = Path("data/processed/player_match_history.csv")
-OUTPUT = Path("data/processed/rolling_player_stats.csv")
+TOURS = ["atp", "wta"]
 
-WINDOW = 10
+BASE_IN = Path("data/processed")
+BASE_OUT = Path("data/processed")
 
 def main():
-    df = pd.read_csv(INPUT, parse_dates=["date"])
+    for tour in TOURS:
+        print(f"\n=== Building rolling features for {tour.upper()} ===")
 
-    df = df.sort_values(["player", "date"])
+        inp = BASE_IN / tour / "player_match_history.csv"
+        out_dir = BASE_OUT / tour
+        out_file = out_dir / "rolling_player_stats.csv"
 
-    df["matches_played_last10"] = (
-        df.groupby("player")["won"]
-        .shift(1)
-        .rolling(WINDOW, min_periods=1)
-        .count()
-    )
+        if not inp.exists():
+            raise RuntimeError(f"Input file not found: {inp}")
 
-    df["winrate_last10"] = (
-        df.groupby("player")["won"]
-        .shift(1)
-        .rolling(WINDOW, min_periods=1)
-        .mean()
-    )
+        df = pd.read_csv(inp, parse_dates=["date"])
 
-    df["avg_odds_last10"] = (
-        df.groupby("player")["odds_for"]
-        .shift(1)
-        .rolling(WINDOW, min_periods=1)
-        .mean()
-    )
+        df = df.sort_values(["player", "date"])
 
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(OUTPUT, index=False)
+        # Slightly smaller window for WTA (optional but recommended)
+        window = 10 if tour == "atp" else 8
 
-    print(f"Saved → {OUTPUT}")
-    print(f"Rows: {len(df)}")
+        df["matches_played_lastN"] = (
+            df.groupby("player")["won"]
+            .shift(1)
+            .rolling(window, min_periods=1)
+            .count()
+        )
+
+        df["winrate_lastN"] = (
+            df.groupby("player")["won"]
+            .shift(1)
+            .rolling(window, min_periods=1)
+            .mean()
+        )
+
+        df["avg_odds_lastN"] = (
+            df.groupby("player")["odds_for"]
+            .shift(1)
+            .rolling(window, min_periods=1)
+            .mean()
+        )
+
+        out_dir.mkdir(parents=True, exist_ok=True)
+        df.to_csv(out_file, index=False)
+
+        print(f"Saved → {out_file}")
+        print(f"Rows: {len(df):,}")
 
 if __name__ == "__main__":
     main()

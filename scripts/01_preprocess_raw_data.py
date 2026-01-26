@@ -1,33 +1,59 @@
 import pandas as pd
 from pathlib import Path
 
-INP = Path("data/processed/atp_all_matches_2000_2025.csv")
-OUT = Path("data/processed/ao_model_base.csv")
+TOURS = ["atp", "wta"]
+
+BASE_IN = Path("data/processed")
+BASE_OUT = Path("data/processed")
 
 def main():
-    df = pd.read_csv(INP, low_memory=False)
+    for tour in TOURS:
+        print(f"\n=== Preprocessing {tour.upper()} data ===")
 
-    df.columns = df.columns.str.lower().str.strip()
+        inp = BASE_IN / tour / "all_matches.csv"
+        out_dir = BASE_OUT / tour
+        out_file = out_dir / "model_base.csv"
 
-    df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
-    df = df.dropna(subset=["date", "winner", "loser"])
+        if not inp.exists():
+            raise RuntimeError(f"Input file not found: {inp}")
 
-    df["surface"] = df["surface"].str.capitalize()
-    df = df[df["surface"] == "Hard"]
+        df = pd.read_csv(inp, low_memory=False)
 
-    df = df.sort_values("date")
+        # Standardise column names
+        df.columns = df.columns.str.lower().str.strip()
 
-    keep = [
-        "date", "season", "tournament", "surface",
-        "winner", "loser", "winner_rank", "loser_rank"
-    ]
-    odds = [c for c in df.columns if c.startswith("b365")]
-    df = df[keep + odds]
+        # Parse dates safely
+        df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
+        df = df.dropna(subset=["date", "winner", "loser"])
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(OUT, index=False)
+        # Keep hard-court matches only (AO-specific assumption)
+        df["surface"] = df["surface"].astype(str).str.capitalize()
+        df = df[df["surface"] == "Hard"]
 
-    print(f"Saved {len(df)} rows → {OUT}")
+        # Sort chronologically
+        df = df.sort_values("date")
+
+        # Core columns
+        keep = [
+            "date",
+            "season",
+            "tournament",
+            "surface",
+            "winner",
+            "loser",
+            "winner_rank",
+            "loser_rank",
+        ]
+
+        # Betting odds (if present)
+        odds = [c for c in df.columns if c.startswith("b365")]
+
+        df = df[keep + odds]
+
+        out_dir.mkdir(parents=True, exist_ok=True)
+        df.to_csv(out_file, index=False)
+
+        print(f"Saved {len(df):,} rows → {out_file}")
 
 if __name__ == "__main__":
     main()

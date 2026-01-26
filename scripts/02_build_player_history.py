@@ -1,48 +1,60 @@
 import pandas as pd
 from pathlib import Path
 
-INPUT = Path("data/processed/ao_model_base.csv")
-OUTPUT = Path("data/processed/player_match_history.csv")
+TOURS = ["atp", "wta"]
+
+BASE_IN = Path("data/processed")
+BASE_OUT = Path("data/processed")
 
 def main():
-    df = pd.read_csv(INPUT, parse_dates=["date"])
+    for tour in TOURS:
+        print(f"\n=== Building player history for {tour.upper()} ===")
 
-    winners = pd.DataFrame({
-        "date": df["date"],
-        "season": df["season"],
-        "tourney_name": df["tournament"],
-        "surface": df["surface"],
-        "player": df["winner"],
-        "player_rank": df["winner_rank"],
-        "opponent": df["loser"],
-        "opponent_rank": df["loser_rank"],
-        "odds_for": df.get("b365w"),
-        "odds_against": df.get("b365l"),
-        "won": 1
-    })
+        inp = BASE_IN / tour / "model_base.csv"
+        out_dir = BASE_OUT / tour
+        out_file = out_dir / "player_match_history.csv"
 
-    losers = pd.DataFrame({
-        "date": df["date"],
-        "season": df["season"],
-        "tourney_name": df["tournament"],
-        "surface": df["surface"],
-        "player": df["loser"],
-        "player_rank": df["loser_rank"],
-        "opponent": df["winner"],
-        "opponent_rank": df["winner_rank"],
-        "odds_for": df.get("b365l"),
-        "odds_against": df.get("b365w"),
-        "won": 0
-    })
+        if not inp.exists():
+            raise RuntimeError(f"Input file not found: {inp}")
 
-    history = pd.concat([winners, losers], ignore_index=True)
-    history = history.sort_values("date").reset_index(drop=True)
+        df = pd.read_csv(inp, parse_dates=["date"])
 
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    history.to_csv(OUTPUT, index=False)
+        winners = pd.DataFrame({
+            "date": df["date"],
+            "season": df["season"],
+            "tourney_name": df["tournament"],
+            "surface": df["surface"],
+            "player": df["winner"],
+            "player_rank": df["winner_rank"],
+            "opponent": df["loser"],
+            "opponent_rank": df["loser_rank"],
+            "odds_for": df.get("b365w"),
+            "odds_against": df.get("b365l"),
+            "won": 1
+        })
 
-    print(f"Saved → {OUTPUT}")
-    print(f"Rows: {len(history)}")
+        losers = pd.DataFrame({
+            "date": df["date"],
+            "season": df["season"],
+            "tourney_name": df["tournament"],
+            "surface": df["surface"],
+            "player": df["loser"],
+            "player_rank": df["loser_rank"],
+            "opponent": df["winner"],
+            "opponent_rank": df["winner_rank"],
+            "odds_for": df.get("b365l"),
+            "odds_against": df.get("b365w"),
+            "won": 0
+        })
+
+        history = pd.concat([winners, losers], ignore_index=True)
+        history = history.sort_values("date").reset_index(drop=True)
+
+        out_dir.mkdir(parents=True, exist_ok=True)
+        history.to_csv(out_file, index=False)
+
+        print(f"Saved → {out_file}")
+        print(f"Rows: {len(history):,}")
 
 if __name__ == "__main__":
     main()
