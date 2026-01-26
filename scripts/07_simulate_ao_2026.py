@@ -5,7 +5,7 @@ from scripts.predict_match import predict_match
 from scripts.name_utils import canonical_name
 
 DRAW_PATH = "data/processed/ao_2026_mens_draw.csv"
-N_SIM = 10000
+N_SIM = 100000
 
 ROUNDS = ["R128", "R64", "R32", "R16", "QF", "SF", "F"]
 
