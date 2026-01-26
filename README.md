@@ -40,7 +40,7 @@ Past ATP and WTA data through: http://www.tennis-data.co.uk/alldata.php
 
 
 
-1\. \*\*Raw data ingestion\*\*
+1\. **Raw data ingestion**
 
 &nbsp;  - ATP \& WTA match results (2000–2025)
 
@@ -50,7 +50,7 @@ Past ATP and WTA data through: http://www.tennis-data.co.uk/alldata.php
 
 
 
-2\. \*\*Feature engineering\*\*
+2\. **Feature engineering**
 
 &nbsp;  - Rolling form metrics (last \*N\* matches)
 
@@ -60,7 +60,7 @@ Past ATP and WTA data through: http://www.tennis-data.co.uk/alldata.php
 
 
 
-3\. \*\*Model\*\*
+3\. **Model**
 
 &nbsp;  - Logistic Regression
 
@@ -70,7 +70,7 @@ Past ATP and WTA data through: http://www.tennis-data.co.uk/alldata.php
 
 
 
-4\. \*\*Tournament simulation\*\*
+4\. **Tournament simulation**
 
 &nbsp;  - Uses real AO 2026 draws
 
